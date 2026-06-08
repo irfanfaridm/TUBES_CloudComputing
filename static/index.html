@@ -1,33 +1,106 @@
 <!DOCTYPE html>
-
+<html lang="id">
 <head>
-    <title>Belajar CI/CD untuk Pemula</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TUBES Cloud Computing</title>
     <style>
         body {
-            background-color: #2D2D2D;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 350px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            color: #C26356;
-            font-size: 30px;
-            font-family: Menlo, Monaco, fixed-width;
+            text-align: center;
+            color: #1f2937;
         }
 
-        p {
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #374151;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background: #2563eb;
             color: white;
-            font-family: "Source Code Pro", Menlo, Monaco, fixed-width;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #result {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
         }
     </style>
 </head>
-
 <body>
-    <h1>Belajar CI/CD untuk Pemula</h1>
-    <p>Ini adalah contoh halaman HTML yang diserve melalui Golang server. Demo ini merupakan lanjutan dari video Part 1:
-        <a href="https://www.youtube.com/watch?v=v-pqoP6ro-8">belajar CI/CD pemula</a>, pastikan kamu tonton ini dulu
-        sebelum lanjut. Untuk menonton video devops, cloud, dan infrastruktur lainnya kalian bisa juga akses youtube
-        channel
-        <a href="https://www.youtube.com/user/girikuncoro">girikuncoro</a>
-    </p>
-</body>
+    <div class="container">
+        <h1>Login</h1>
 
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Masukkan username">
+
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Masukkan password">
+
+        <button onclick="login()">Login</button>
+
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = data.message;
+            })
+            .catch(error => {
+                document.getElementById("result").innerText = "Terjadi kesalahan.";
+            });
+        }
+    </script>
+</body>
 </html>
