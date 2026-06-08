@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - TUBES Cloud Computing</title>
+    <title>CRUD App - TUBES Cloud Computing</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,94 +13,214 @@
         }
 
         .container {
-            width: 350px;
-            margin: 100px auto;
+            width: 600px;
+            margin: 60px auto;
             background: white;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
+        h1, p {
             text-align: center;
+        }
+
+        h1 {
             color: #1f2937;
         }
 
-        label {
-            display: block;
-            margin-top: 15px;
-            color: #374151;
+        p {
+            color: #4b5563;
+        }
+
+        .form {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
         }
 
         input {
-            width: 100%;
+            flex: 1;
             padding: 10px;
-            margin-top: 5px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            box-sizing: border-box;
         }
 
         button {
-            width: 100%;
-            margin-top: 20px;
-            padding: 10px;
-            background: #2563eb;
-            color: white;
+            padding: 10px 14px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            color: white;
         }
 
-        button:hover {
+        .btn-add {
+            background: #2563eb;
+        }
+
+        .btn-add:hover {
             background: #1d4ed8;
         }
 
-        #result {
+        .btn-edit {
+            background: #f59e0b;
+        }
+
+        .btn-delete {
+            background: #dc2626;
+        }
+
+        ul {
+            padding: 0;
+            margin-top: 25px;
+        }
+
+        li {
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        #message {
             margin-top: 15px;
             text-align: center;
             font-weight: bold;
+            color: #111827;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Login</h1>
+        <h1>TUBES Cloud Computing</h1>
+        <p>Fitur CRUD sederhana: tambah, edit, dan hapus data.</p>
 
-        <label>Username</label>
-        <input type="text" id="username" placeholder="Masukkan username">
+        <div class="form">
+            <input type="text" id="itemInput" placeholder="Masukkan nama item">
+            <button class="btn-add" onclick="addItem()">Tambah</button>
+        </div>
 
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Masukkan password">
+        <div id="message"></div>
 
-        <button onclick="login()">Login</button>
-
-        <p id="result"></p>
+        <ul id="itemList"></ul>
     </div>
 
     <script>
-        function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
+        const apiUrl = "/items";
 
-            fetch("/login", {
+        function showMessage(text) {
+            document.getElementById("message").innerText = text;
+            setTimeout(() => {
+                document.getElementById("message").innerText = "";
+            }, 2000);
+        }
+
+        function loadItems() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const itemList = document.getElementById("itemList");
+                    itemList.innerHTML = "";
+
+                    if (data.length === 0) {
+                        itemList.innerHTML = "<li>Belum ada data.</li>";
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const li = document.createElement("li");
+
+                        li.innerHTML = `
+                            <span>${item.name}</span>
+                            <div class="actions">
+                                <button class="btn-edit" onclick="editItem(${item.id}, '${item.name}')">Edit</button>
+                                <button class="btn-delete" onclick="deleteItem(${item.id})">Hapus</button>
+                            </div>
+                        `;
+
+                        itemList.appendChild(li);
+                    });
+                });
+        }
+
+        function addItem() {
+            const input = document.getElementById("itemInput");
+            const name = input.value.trim();
+
+            if (name === "") {
+                showMessage("Nama item tidak boleh kosong.");
+                return;
+            }
+
+            fetch(apiUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                })
+                body: JSON.stringify({ name: name })
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("result").innerText = data.message;
-            })
-            .catch(error => {
-                document.getElementById("result").innerText = "Terjadi kesalahan.";
+                showMessage(data.message);
+                input.value = "";
+                loadItems();
             });
         }
+
+        function editItem(id, oldName) {
+            const newName = prompt("Edit nama item:", oldName);
+
+            if (newName === null) {
+                return;
+            }
+
+            if (newName.trim() === "") {
+                showMessage("Nama item tidak boleh kosong.");
+                return;
+            }
+
+            fetch(`${apiUrl}/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ name: newName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMessage(data.message);
+                loadItems();
+            });
+        }
+
+        function deleteItem(id) {
+            const confirmDelete = confirm("Yakin ingin menghapus item ini?");
+
+            if (!confirmDelete) {
+                return;
+            }
+
+            fetch(`${apiUrl}/${id}`, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMessage(data.message);
+                loadItems();
+            });
+        }
+
+        loadItems();
     </script>
 </body>
 </html>
